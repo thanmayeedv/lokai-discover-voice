@@ -1,0 +1,73 @@
+import { Search, Globe, User, LogIn } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import Logo from './Logo';
+
+const Navbar = () => {
+  return (
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-lg">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo - Left Side */}
+          <Logo />
+
+          {/* Center Search Box */}
+          <div className="hidden md:flex flex-1 max-w-md mx-8">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search for services in your area..."
+                className="pl-10 pr-4 py-2 w-full rounded-xl border-2 focus:border-accent transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Right Navigation */}
+          <div className="flex items-center gap-4">
+            {/* Language Toggle */}
+            <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              <span>हिं</span>
+            </Button>
+
+            {/* Navigation Links */}
+            <div className="hidden lg:flex items-center gap-6">
+              <a href="#" className="text-foreground hover:text-accent transition-colors font-medium">
+                Home
+              </a>
+              <a href="#" className="text-foreground hover:text-accent transition-colors font-medium">
+                Services
+              </a>
+            </div>
+
+            {/* Auth Buttons */}
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
+                <LogIn className="w-4 h-4" />
+                Login
+              </Button>
+              <Button className="bg-gradient-hero text-white hover:opacity-90">
+                Sign Up
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Search */}
+        <div className="md:hidden mt-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Search services..."
+              className="pl-10 pr-4 py-2 w-full rounded-xl border-2 focus:border-accent"
+            />
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
