@@ -33,10 +33,10 @@ const Navbar = () => {
 
             {/* Navigation Links */}
             <div className="hidden lg:flex items-center gap-6">
-              <a href="#" className="text-foreground hover:text-accent transition-colors font-medium">
+              <a href="/" className="text-foreground hover:text-accent transition-colors font-medium">
                 Home
               </a>
-              <a href="#" className="text-foreground hover:text-accent transition-colors font-medium">
+              <a href="/services" className="text-foreground hover:text-accent transition-colors font-medium">
                 Services
               </a>
             </div>
