@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vendor_profiles: {
+        Row: {
+          bank_details: Json | null
+          business_address: string | null
+          business_name: string | null
+          business_photos: string[] | null
+          contact_number: string | null
+          created_at: string
+          id: string
+          location_coordinates: unknown | null
+          service_cost: number | null
+          service_type: string | null
+          status: Database["public"]["Enums"]["vendor_status"]
+          updated_at: string
+          upi_id: string | null
+          user_id: string
+        }
+        Insert: {
+          bank_details?: Json | null
+          business_address?: string | null
+          business_name?: string | null
+          business_photos?: string[] | null
+          contact_number?: string | null
+          created_at?: string
+          id?: string
+          location_coordinates?: unknown | null
+          service_cost?: number | null
+          service_type?: string | null
+          status?: Database["public"]["Enums"]["vendor_status"]
+          updated_at?: string
+          upi_id?: string | null
+          user_id: string
+        }
+        Update: {
+          bank_details?: Json | null
+          business_address?: string | null
+          business_name?: string | null
+          business_photos?: string[] | null
+          contact_number?: string | null
+          created_at?: string
+          id?: string
+          location_coordinates?: unknown | null
+          service_cost?: number | null
+          service_type?: string | null
+          status?: Database["public"]["Enums"]["vendor_status"]
+          updated_at?: string
+          upi_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +106,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "vendor" | "buyer" | "admin"
+      vendor_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +234,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["vendor", "buyer", "admin"],
+      vendor_status: ["pending", "approved", "rejected"],
+    },
   },
 } as const
