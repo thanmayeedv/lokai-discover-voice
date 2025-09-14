@@ -1,17 +1,30 @@
-import { Search, Globe, User, LogOut, Settings } from 'lucide-react';
+import { Search, Globe, User, LogOut, Settings, ShoppingCart, Package, Plus, BarChart3, Users, Bell, Heart, HelpCircle, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 import Logo from './Logo';
+import VoiceSearchInput from './VoiceSearchInput';
 
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('en-US');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const languages = [
+    { code: 'en-US', label: 'English', flag: '🇺🇸' },
+    { code: 'hi-IN', label: 'हिंदी', flag: '🇮🇳' },
+    { code: 'kn-IN', label: 'ಕನ್ನಡ', flag: '🇮🇳' },
+    { code: 'te-IN', label: 'తెలుగు', flag: '🇮🇳' },
+    { code: 'ta-IN', label: 'தமிழ்', flag: '🇮🇳' }
+  ];
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -30,12 +43,77 @@ const Navbar = () => {
     }
   };
 
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      navigate(`/services?search=${encodeURIComponent(query)}`);
+    }
+  };
+
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'admin': return 'destructive';
       case 'vendor': return 'default';
       case 'buyer': return 'secondary';
       default: return 'outline';
+    }
+  };
+
+  const getRoleSpecificNavItems = () => {
+    if (!user || !profile) return null;
+
+    switch (profile.role) {
+      case 'buyer':
+        return (
+          <div className="hidden lg:flex items-center gap-4">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <ShoppingCart className="w-4 h-4" />
+              <span>Cart</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              <span>Orders</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Heart className="w-4 h-4" />
+              <span>Favorites</span>
+            </Button>
+          </div>
+        );
+      
+      case 'vendor':
+        return (
+          <div className="hidden lg:flex items-center gap-4">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              <span>Dashboard</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              <span>Add Service</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              <span>Orders</span>
+            </Button>
+          </div>
+        );
+      
+      case 'admin':
+        return (
+          <div className="hidden lg:flex items-center gap-4">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>Manage Users</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              <span>Analytics</span>
+            </Button>
+          </div>
+        );
+      
+      default:
+        return null;
     }
   };
   return (
@@ -47,23 +125,55 @@ const Navbar = () => {
 
           {/* Center Search Box */}
           <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                type="text"
-                placeholder="Search for services in your area..."
-                className="pl-10 pr-4 py-2 w-full rounded-xl border-2 focus:border-accent transition-colors"
-              />
-            </div>
+            <VoiceSearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSearch={handleSearch}
+              language={selectedLanguage}
+              placeholder="Search for services in your area..."
+            />
           </div>
 
           {/* Right Navigation */}
           <div className="flex items-center gap-4">
             {/* Language Toggle */}
-            <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              <span>हिं</span>
+            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+              <SelectTrigger className="hidden sm:flex w-auto border-none bg-transparent gap-2 hover:bg-accent/10 transition-colors">
+                <Globe className="w-4 h-4" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {languages.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    <div className="flex items-center gap-2">
+                      <span>{lang.flag}</span>
+                      <span>{lang.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Notifications */}
+            {user && (
+              <Button variant="ghost" size="sm" className="relative">
+                <Bell className="w-4 h-4" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full"></span>
+              </Button>
+            )}
+
+            {/* Theme Toggle */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="hidden sm:flex"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
+
+            {/* Role-specific Navigation */}
+            {getRoleSpecificNavItems()}
 
             {/* Navigation Links */}
             <div className="hidden lg:flex items-center gap-6">
@@ -73,6 +183,12 @@ const Navbar = () => {
               <a href="/services" className="text-foreground hover:text-accent transition-colors font-medium">
                 Services
               </a>
+              {user && (
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>Help</span>
+                </Button>
+              )}
             </div>
 
             {/* Auth Section */}
@@ -125,14 +241,13 @@ const Navbar = () => {
 
         {/* Mobile Search */}
         <div className="md:hidden mt-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              type="text"
-              placeholder="Search services..."
-              className="pl-10 pr-4 py-2 w-full rounded-xl border-2 focus:border-accent"
-            />
-          </div>
+          <VoiceSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSearch={handleSearch}
+            language={selectedLanguage}
+            placeholder="Search services..."
+          />
         </div>
       </div>
     </nav>
