@@ -66,8 +66,9 @@ const VoiceSearchInput = ({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && onSearch) {
+      e.preventDefault();
       onSearch(searchQuery);
     }
   };
@@ -79,7 +80,7 @@ const VoiceSearchInput = ({
         type="text"
         value={searchQuery}
         onChange={handleInputChange}
-        onKeyPress={handleKeyPress}
+        onKeyDown={handleKeyDown}
         placeholder={isListening ? "Listening..." : placeholder}
         className={`pl-10 pr-12 py-2 w-full rounded-xl border-2 focus:border-accent transition-colors ${
           isListening ? 'border-accent bg-accent/5' : ''

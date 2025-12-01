@@ -56,7 +56,7 @@ export type Database = {
           contact_number: string | null
           created_at: string
           id: string
-          location_coordinates: unknown | null
+          location_coordinates: unknown
           service_cost: number | null
           service_type: string | null
           status: Database["public"]["Enums"]["vendor_status"]
@@ -72,7 +72,7 @@ export type Database = {
           contact_number?: string | null
           created_at?: string
           id?: string
-          location_coordinates?: unknown | null
+          location_coordinates?: unknown
           service_cost?: number | null
           service_type?: string | null
           status?: Database["public"]["Enums"]["vendor_status"]
@@ -88,7 +88,7 @@ export type Database = {
           contact_number?: string | null
           created_at?: string
           id?: string
-          location_coordinates?: unknown | null
+          location_coordinates?: unknown
           service_cost?: number | null
           service_type?: string | null
           status?: Database["public"]["Enums"]["vendor_status"]
