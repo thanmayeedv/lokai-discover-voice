@@ -10,6 +10,7 @@ import Services from "./pages/Services";
 import Auth from "./pages/Auth";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import VendorDashboard from "./pages/VendorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,11 @@ const App = () => (
             <Route path="/services" element={
               <ProtectedRoute>
                 <Services />
+              </ProtectedRoute>
+            } />
+            <Route path="/vendor/dashboard" element={
+              <ProtectedRoute allowedRoles={['vendor']}>
+                <VendorDashboard />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
