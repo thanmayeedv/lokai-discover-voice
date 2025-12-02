@@ -83,15 +83,25 @@ const Navbar = () => {
       case 'vendor':
         return (
           <div className="hidden lg:flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => navigate('/vendor/dashboard')}
+            >
               <BarChart3 className="w-4 h-4" />
               <span>Dashboard</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => navigate('/vendor/dashboard')}
+            >
               <Plus className="w-4 h-4" />
               <span>Add Service</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2" disabled>
               <Package className="w-4 h-4" />
               <span>Orders</span>
             </Button>
