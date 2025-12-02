@@ -160,25 +160,30 @@ const Services = () => {
         {!loading && filteredVendors.length === 0 && (
           <div className="text-center py-16">
             <Search className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No vendors found</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl font-semibold mb-2">No services found</h3>
+            <p className="text-muted-foreground mb-4">
               {searchQuery 
                 ? 'Try adjusting your search terms'
-                : 'No approved vendors available yet'
+                : 'No approved services available yet'
               }
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Note: New vendor services require admin approval before appearing here
             </p>
           </div>
         )}
 
-        {/* Vendors Grid */}
+        {/* Services List */}
         {!loading && filteredVendors.length > 0 && (
           <section>
-            <div className="flex items-center gap-3 mb-8">
-              <Building className="w-6 h-6 text-primary" />
-              <h2 className="text-2xl font-bold">Available Vendors</h2>
-              <Badge className="bg-primary text-primary-foreground">
-                {filteredVendors.length} {filteredVendors.length === 1 ? 'vendor' : 'vendors'}
-              </Badge>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <Building className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold">Available Services</h2>
+                <Badge className="bg-primary text-primary-foreground">
+                  {filteredVendors.length} {filteredVendors.length === 1 ? 'service' : 'services'}
+                </Badge>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
