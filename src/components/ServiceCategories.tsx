@@ -1,59 +1,56 @@
 import { Wrench, ShoppingBag, GraduationCap, Home, Car, Utensils } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useLanguage } from '@/hooks/useLanguage';
 
 const ServiceCategories = () => {
+  const { t } = useLanguage();
+
   const categories = [
     {
       id: 'plumber',
-      name: 'Plumber',
-      nameHindi: 'प्लंबर',
+      nameKey: 'categories.plumber',
       icon: Wrench,
-      description: 'Pipes, leaks, repairs',
+      descKey: 'categories.plumberDesc',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
       id: 'kirani',
-      name: 'Kirani Store',
-      nameHindi: 'किराना दुकान', 
+      nameKey: 'categories.kirani',
       icon: ShoppingBag,
-      description: 'Groceries, daily needs',
+      descKey: 'categories.kiraniDesc',
       color: 'text-green-600',
       bgColor: 'bg-green-50',
     },
     {
       id: 'tutor',
-      name: 'Tutor',
-      nameHindi: 'शिक्षक',
+      nameKey: 'categories.tutor',
       icon: GraduationCap,
-      description: 'Home tutoring, classes',
+      descKey: 'categories.tutorDesc',
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
     },
     {
       id: 'electrician',
-      name: 'Electrician',
-      nameHindi: 'इलेक्ट्रीशियन',
+      nameKey: 'categories.electrician',
       icon: Home,
-      description: 'Wiring, appliances',
+      descKey: 'categories.electricianDesc',
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
     },
     {
       id: 'mechanic',
-      name: 'Mechanic',
-      nameHindi: 'मैकेनिक',
+      nameKey: 'categories.mechanic',
       icon: Car,
-      description: 'Vehicle repairs',
+      descKey: 'categories.mechanicDesc',
       color: 'text-red-600',
       bgColor: 'bg-red-50',
     },
     {
       id: 'cook',
-      name: 'Cook',
-      nameHindi: 'खाना बनाने वाला',
+      nameKey: 'categories.cook',
       icon: Utensils,
-      description: 'Home cooking, catering',
+      descKey: 'categories.cookDesc',
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
     },
@@ -62,10 +59,9 @@ const ServiceCategories = () => {
   return (
     <div className="py-12">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-4">Popular Services</h2>
+        <h2 className="text-3xl font-bold mb-4">{t('categories.title')}</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Find trusted local service providers in your neighborhood. 
-          All verified and rated by your community.
+          {t('categories.description')}
         </p>
       </div>
 
@@ -81,9 +77,8 @@ const ServiceCategories = () => {
                 <div className={`w-16 h-16 rounded-full ${category.bgColor} flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform`}>
                   <Icon className={`w-8 h-8 ${category.color}`} />
                 </div>
-                <h3 className="font-semibold text-sm mb-1">{category.name}</h3>
-                <p className="text-xs text-accent font-medium mb-2">{category.nameHindi}</p>
-                <p className="text-xs text-muted-foreground">{category.description}</p>
+                <h3 className="font-semibold text-sm mb-1">{t(category.nameKey)}</h3>
+                <p className="text-xs text-muted-foreground">{t(category.descKey)}</p>
               </CardContent>
             </Card>
           );

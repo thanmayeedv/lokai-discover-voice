@@ -1,9 +1,12 @@
 import { MapPin, Star, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/hooks/useLanguage';
 import VoiceSearch from './VoiceSearch';
 import heroBg from '@/assets/hero-bg.jpg';
 
 const Hero = () => {
+  const { t } = useLanguage();
+
   return (
     <section className="relative min-h-[80vh] flex items-center">
       {/* Background Image with Overlay */}
@@ -22,48 +25,47 @@ const Hero = () => {
           <div className="text-white">
             <div className="flex items-center gap-2 mb-6">
               <MapPin className="w-6 h-6 text-accent" />
-              <span className="text-accent font-medium">Hyperlocal Discovery</span>
+              <span className="text-accent font-medium">{t('hero.hyperlocal')}</span>
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-              Discover <br />
+              {t('hero.discover')} <br />
               <span className="text-gradient bg-gradient-to-r from-accent to-accent-light bg-clip-text text-transparent">
-                something LokAI
+                {t('hero.somethingLokai')}
               </span>
             </h1>
             
             <p className="text-xl mb-8 text-white/90 max-w-lg">
-              Find trusted local services in your neighborhood using AI-powered voice search. 
-              Speak in your language, get instant recommendations.
+              {t('hero.description')}
             </p>
             
             {/* Stats */}
             <div className="flex flex-wrap gap-8 mb-8">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-accent" />
-                <span className="text-white/90">10K+ Service Providers</span>
+                <span className="text-white/90">{t('hero.serviceProviders')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-accent" />
-                <span className="text-white/90">4.8 Average Rating</span>
+                <span className="text-white/90">{t('hero.avgRating')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-accent" />
-                <span className="text-white/90">500+ Neighborhoods</span>
+                <span className="text-white/90">{t('hero.neighborhoods')}</span>
               </div>
             </div>
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="btn-hero">
-                Get Started Free
+                {t('hero.getStarted')}
               </Button>
               <Button 
                 variant="outline" 
                 size="lg" 
                 className="border-white text-white hover:bg-white hover:text-primary"
               >
-                Learn More
+                {t('hero.learnMore')}
               </Button>
             </div>
           </div>
