@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
+import { useLanguage } from '@/hooks/useLanguage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -28,6 +29,7 @@ interface VendorProfile {
 const Services = () => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
+  const { t } = useLanguage();
   const [vendors, setVendors] = useState<VendorProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filteredVendors, setFilteredVendors] = useState<VendorProfile[]>([]);
@@ -139,12 +141,12 @@ const Services = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-hero bg-clip-text text-transparent">
-            {searchQuery ? 'Search Results' : 'All Services'}
+            {searchQuery ? t('services.searchResults') : t('services.title')}
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
             {searchQuery 
-              ? `Showing results for "${searchQuery}"`
-              : 'Discover trusted local service providers in your area.'
+              ? `"${searchQuery}"`
+              : t('categories.description')
             }
           </p>
         </div>
@@ -153,6 +155,7 @@ const Services = () => {
         {loading && (
           <div className="flex justify-center items-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">{t('services.loading')}</span>
           </div>
         )}
 
@@ -160,16 +163,7 @@ const Services = () => {
         {!loading && filteredVendors.length === 0 && (
           <div className="text-center py-16">
             <Search className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No services found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery 
-                ? 'Try adjusting your search terms'
-                : 'No approved services available yet'
-              }
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Note: New vendor services require admin approval before appearing here
-            </p>
+            <h3 className="text-xl font-semibold mb-2">{t('services.noResults')}</h3>
           </div>
         )}
 
@@ -179,7 +173,7 @@ const Services = () => {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <Building className="w-6 h-6 text-primary" />
-                <h2 className="text-2xl font-bold">Available Services</h2>
+                <h2 className="text-2xl font-bold">{t('services.title')}</h2>
                 <Badge className="bg-primary text-primary-foreground">
                   {filteredVendors.length} {filteredVendors.length === 1 ? 'service' : 'services'}
                 </Badge>

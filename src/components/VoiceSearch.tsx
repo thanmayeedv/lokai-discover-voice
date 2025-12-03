@@ -3,27 +3,34 @@ import { Mic, MicOff, Volume2, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/hooks/useLanguage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-type SupportedLanguage = 'hi-IN' | 'en-IN' | 'te-IN' | 'ta-IN' | 'kn-IN';
+type SupportedLanguage = 'hi-IN' | 'en-US' | 'te-IN' | 'ta-IN' | 'kn-IN';
 
 const LANGUAGES: { code: SupportedLanguage; label: string }[] = [
   { code: 'hi-IN', label: 'हिंदी' },
-  { code: 'en-IN', label: 'English' },
+  { code: 'en-US', label: 'English' },
   { code: 'te-IN', label: 'తెలుగు' },
   { code: 'ta-IN', label: 'தமிழ்' },
   { code: 'kn-IN', label: 'ಕನ್ನಡ' },
 ];
 
 const VoiceSearch = () => {
+  const { language, t } = useLanguage();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLang, setSelectedLang] = useState<SupportedLanguage>('kn-IN');
+  const [selectedLang, setSelectedLang] = useState<SupportedLanguage>(language as SupportedLanguage);
   const [isTranslating, setIsTranslating] = useState(false);
   const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
+
+  // Sync selected language with global language
+  useEffect(() => {
+    setSelectedLang(language as SupportedLanguage);
+  }, [language]);
 
   useEffect(() => {
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -126,9 +133,9 @@ const VoiceSearch = () => {
   return (
     <div className="bg-card rounded-2xl p-8 shadow-lg border">
       <div className="text-center">
-        <h3 className="text-2xl font-bold mb-2">Voice Search</h3>
+        <h3 className="text-2xl font-bold mb-2">{t('voice.tapToSpeak')}</h3>
         <p className="text-muted-foreground mb-6">
-          Speak in your preferred language to find local services
+          {t('hero.description')}
         </p>
 
         {/* Search Input */}
@@ -191,12 +198,12 @@ const VoiceSearch = () => {
           {isTranslating ? (
             <div className="text-primary font-medium flex items-center gap-2">
               <Loader2 className="w-5 h-5 animate-spin" />
-              Translating...
+              {t('voice.searching')}
             </div>
           ) : isListening ? (
             <div className="text-accent font-medium flex items-center gap-2">
               <Volume2 className="w-5 h-5 animate-pulse" />
-              Listening in {LANGUAGES.find(l => l.code === selectedLang)?.label}...
+              {t('voice.speakNow')} ({LANGUAGES.find(l => l.code === selectedLang)?.label})
             </div>
           ) : transcript ? (
             <div className="text-foreground bg-muted p-3 rounded-lg max-w-sm">
@@ -204,7 +211,7 @@ const VoiceSearch = () => {
             </div>
           ) : (
             <p className="text-muted-foreground">
-              Tap the microphone and speak your query
+              {t('voice.tapToSpeak')}
             </p>
           )}
         </div>

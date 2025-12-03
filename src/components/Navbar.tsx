@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -12,10 +13,10 @@ import VoiceSearchInput from './VoiceSearchInput';
 
 const Navbar = () => {
   const { user, profile, signOut } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState('en-US');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const languages = [
@@ -67,15 +68,15 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center gap-4">
             <Button variant="ghost" size="sm" className="flex items-center gap-2">
               <ShoppingCart className="w-4 h-4" />
-              <span>Cart</span>
+              <span>{t('nav.cart')}</span>
             </Button>
             <Button variant="ghost" size="sm" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
-              <span>Orders</span>
+              <span>{t('nav.orders')}</span>
             </Button>
             <Button variant="ghost" size="sm" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
-              <span>Favorites</span>
+              <span>{t('nav.favorites')}</span>
             </Button>
           </div>
         );
@@ -90,7 +91,7 @@ const Navbar = () => {
               onClick={() => navigate('/vendor/dashboard')}
             >
               <BarChart3 className="w-4 h-4" />
-              <span>Dashboard</span>
+              <span>{t('nav.dashboard')}</span>
             </Button>
             <Button 
               variant="ghost" 
@@ -99,11 +100,11 @@ const Navbar = () => {
               onClick={() => navigate('/vendor/dashboard')}
             >
               <Plus className="w-4 h-4" />
-              <span>Add Service</span>
+              <span>{t('nav.addService')}</span>
             </Button>
             <Button variant="ghost" size="sm" className="flex items-center gap-2" disabled>
               <Package className="w-4 h-4" />
-              <span>Orders</span>
+              <span>{t('nav.orders')}</span>
             </Button>
           </div>
         );
@@ -113,11 +114,11 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center gap-4">
             <Button variant="ghost" size="sm" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              <span>Manage Users</span>
+              <span>{t('nav.manageUsers')}</span>
             </Button>
             <Button variant="ghost" size="sm" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
-              <span>Analytics</span>
+              <span>{t('nav.analytics')}</span>
             </Button>
           </div>
         );
@@ -126,6 +127,7 @@ const Navbar = () => {
         return null;
     }
   };
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-lg">
       <div className="container mx-auto px-4 py-3">
@@ -139,15 +141,15 @@ const Navbar = () => {
               value={searchQuery}
               onChange={setSearchQuery}
               onSearch={handleSearch}
-              language={selectedLanguage}
-              placeholder="Search for services in your area..."
+              language={language}
+              placeholder={t('nav.searchPlaceholder')}
             />
           </div>
 
           {/* Right Navigation */}
           <div className="flex items-center gap-4">
             {/* Language Toggle */}
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+            <Select value={language} onValueChange={(val) => setLanguage(val as any)}>
               <SelectTrigger className="hidden sm:flex w-auto border-none bg-transparent gap-2 hover:bg-accent/10 transition-colors">
                 <Globe className="w-4 h-4" />
                 <SelectValue />
@@ -188,15 +190,15 @@ const Navbar = () => {
             {/* Navigation Links */}
             <div className="hidden lg:flex items-center gap-6">
               <a href="/" className="text-foreground hover:text-accent transition-colors font-medium">
-                Home
+                {t('nav.home')}
               </a>
               <a href="/services" className="text-foreground hover:text-accent transition-colors font-medium">
-                Services
+                {t('nav.services')}
               </a>
               {user && (
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
                   <HelpCircle className="w-4 h-4" />
-                  <span>Help</span>
+                  <span>{t('nav.help')}</span>
                 </Button>
               )}
             </div>
@@ -218,14 +220,14 @@ const Navbar = () => {
                     <DropdownMenuItem className="flex items-center gap-2">
                       <User className="w-4 h-4" />
                       <div className="flex flex-col">
-                        <span className="font-medium">{profile.full_name || 'User'}</span>
+                        <span className="font-medium">{profile.full_name || t('common.user')}</span>
                         <span className="text-xs text-muted-foreground">{user.email}</span>
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="flex items-center gap-2">
                       <Settings className="w-4 h-4" />
-                      Profile Settings
+                      {t('nav.profileSettings')}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 
@@ -233,7 +235,7 @@ const Navbar = () => {
                       onClick={handleSignOut}
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {t('nav.signOut')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -242,7 +244,7 @@ const Navbar = () => {
                   onClick={() => navigate('/auth')}
                   className="bg-gradient-hero text-white hover:opacity-90"
                 >
-                  Sign In
+                  {t('nav.signIn')}
                 </Button>
               )}
             </div>
@@ -255,8 +257,8 @@ const Navbar = () => {
             value={searchQuery}
             onChange={setSearchQuery}
             onSearch={handleSearch}
-            language={selectedLanguage}
-            placeholder="Search services..."
+            language={language}
+            placeholder={t('nav.searchPlaceholder')}
           />
         </div>
       </div>
