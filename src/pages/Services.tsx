@@ -5,13 +5,18 @@ import {
   Phone,
   Building,
   Search,
-  Loader2
+  Loader2,
+  Navigation,
+  Sparkles,
+  Star,
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -26,19 +31,39 @@ interface VendorProfile {
   status: string;
 }
 
+interface AIRecommendations {
+  featured: string[];
+  categories: Record<string, string[]>;
+  insights: string;
+  nearbyTip: string;
+}
+
 const Services = () => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
   const { t, language } = useLanguage();
+  const { latitude, longitude, loading: locationLoading, error: locationError, requestLocation, permissionDenied } = useGeolocation();
+  
   const [vendors, setVendors] = useState<VendorProfile[]>([]);
   const [translatedVendors, setTranslatedVendors] = useState<VendorProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [translating, setTranslating] = useState(false);
   const [filteredVendors, setFilteredVendors] = useState<VendorProfile[]>([]);
+  const [recommendations, setRecommendations] = useState<AIRecommendations | null>(null);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   useEffect(() => {
     fetchVendors();
+    // Auto-request location on mount
+    requestLocation();
   }, []);
+
+  // Fetch AI recommendations when vendors and location are available
+  useEffect(() => {
+    if (vendors.length > 0 && !searchQuery) {
+      fetchRecommendations();
+    }
+  }, [vendors, latitude, longitude, language]);
 
   // Translate vendors when language changes
   useEffect(() => {
@@ -73,13 +98,35 @@ const Services = () => {
         .eq('status', 'approved');
 
       if (error) throw error;
-
       setVendors(data || []);
     } catch (error: any) {
       console.error('Error fetching vendors:', error);
       toast.error('Failed to load vendors');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecommendations = async () => {
+    if (vendors.length === 0) return;
+    
+    try {
+      setLoadingRecommendations(true);
+      const response = await supabase.functions.invoke('search-services', {
+        body: {
+          action: 'get-recommendations',
+          language,
+          vendors,
+          userLocation: latitude && longitude ? { latitude, longitude } : null,
+        },
+      });
+
+      if (response.error) throw response.error;
+      setRecommendations(response.data?.recommendations || null);
+    } catch (error) {
+      console.error('Recommendations error:', error);
+    } finally {
+      setLoadingRecommendations(false);
     }
   };
 
@@ -100,7 +147,6 @@ const Services = () => {
       });
 
       if (response.error) throw response.error;
-      
       setTranslatedVendors(response.data?.translatedVendors || vendorList);
     } catch (error) {
       console.error('Translation error:', error);
@@ -110,11 +156,26 @@ const Services = () => {
     }
   };
 
-  const VendorCard = ({ vendor }: { vendor: VendorProfile }) => {
+  const getFeaturedVendors = () => {
+    if (!recommendations?.featured) return [];
+    const vendorList = translatedVendors.length > 0 ? translatedVendors : vendors;
+    return recommendations.featured
+      .map(id => vendorList.find(v => v.id === id))
+      .filter(Boolean) as VendorProfile[];
+  };
+
+  const VendorCard = ({ vendor, isFeatured = false }: { vendor: VendorProfile; isFeatured?: boolean }) => {
     return (
-      <Card className="service-card cursor-pointer group hover:border-accent hover:shadow-lg transition-all duration-300">
+      <Card className={`service-card cursor-pointer group hover:border-accent hover:shadow-lg transition-all duration-300 ${isFeatured ? 'ring-2 ring-primary/30 bg-primary/5' : ''}`}>
         <CardContent className="p-4">
           <div className="flex flex-col gap-3">
+            {isFeatured && (
+              <div className="flex items-center gap-1 text-primary text-xs font-medium">
+                <Star className="w-3 h-3 fill-current" />
+                <span>Recommended</span>
+              </div>
+            )}
+            
             {/* Business Photo */}
             {vendor.business_photos && vendor.business_photos.length > 0 && (
               <div className="w-full h-32 rounded-lg overflow-hidden">
@@ -169,13 +230,15 @@ const Services = () => {
     );
   };
 
+  const featuredVendors = getFeaturedVendors();
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-hero bg-clip-text text-transparent">
             {searchQuery ? t('services.searchResults') : t('services.title')}
           </h1>
@@ -186,6 +249,60 @@ const Services = () => {
             }
           </p>
         </div>
+
+        {/* Location Status Bar */}
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
+          {latitude && longitude ? (
+            <Badge variant="outline" className="flex items-center gap-2 px-4 py-2">
+              <Navigation className="w-4 h-4 text-green-500" />
+              <span className="text-sm">Location detected</span>
+            </Badge>
+          ) : locationLoading ? (
+            <Badge variant="outline" className="flex items-center gap-2 px-4 py-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">Detecting location...</span>
+            </Badge>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={requestLocation}
+              className="flex items-center gap-2"
+            >
+              <Navigation className="w-4 h-4" />
+              {permissionDenied ? 'Enable location for better results' : 'Detect my location'}
+            </Button>
+          )}
+          
+          {recommendations && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={fetchRecommendations}
+              disabled={loadingRecommendations}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${loadingRecommendations ? 'animate-spin' : ''}`} />
+              Refresh recommendations
+            </Button>
+          )}
+        </div>
+
+        {/* AI Insights */}
+        {recommendations && !searchQuery && (
+          <Card className="mb-8 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3">
+                <Sparkles className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+                <div>
+                  <h3 className="font-semibold mb-2 text-foreground">AI Insights</h3>
+                  <p className="text-muted-foreground mb-2">{recommendations.insights}</p>
+                  <p className="text-sm text-primary">{recommendations.nearbyTip}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Loading State */}
         {(loading || translating) && (
@@ -205,13 +322,30 @@ const Services = () => {
           </div>
         )}
 
-        {/* Services List */}
+        {/* Featured Recommendations */}
+        {!loading && !searchQuery && featuredVendors.length > 0 && (
+          <section className="mb-12">
+            <div className="flex items-center gap-3 mb-6">
+              <Star className="w-6 h-6 text-primary fill-primary" />
+              <h2 className="text-2xl font-bold">Recommended for You</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {featuredVendors.map((vendor) => (
+                <VendorCard key={vendor.id} vendor={vendor} isFeatured />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* All Services List */}
         {!loading && filteredVendors.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <Building className="w-6 h-6 text-primary" />
-                <h2 className="text-2xl font-bold">{t('services.title')}</h2>
+                <h2 className="text-2xl font-bold">
+                  {searchQuery ? t('services.searchResults') : 'All Services'}
+                </h2>
                 <Badge className="bg-primary text-primary-foreground">
                   {filteredVendors.length} {filteredVendors.length === 1 ? 'service' : 'services'}
                 </Badge>
