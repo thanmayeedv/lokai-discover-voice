@@ -342,6 +342,48 @@ const translations: Translations = {
     'te-IN': 'వినియోగదారు',
     'ta-IN': 'பயனர்',
   },
+  'common.locationDetected': {
+    'en-US': 'Location detected',
+    'hi-IN': 'स्थान का पता चला',
+    'kn-IN': 'ಸ್ಥಳ ಪತ್ತೆಯಾಗಿದೆ',
+    'te-IN': 'స్థానం గుర్తించబడింది',
+    'ta-IN': 'இடம் கண்டறியப்பட்டது',
+  },
+  'common.detectingLocation': {
+    'en-US': 'Detecting location...',
+    'hi-IN': 'स्थान का पता लगा रहे हैं...',
+    'kn-IN': 'ಸ್ಥಳವನ್ನು ಪತ್ತೆಮಾಡಲಾಗುತ್ತಿದೆ...',
+    'te-IN': 'స్థానాన్ని గుర్తిస్తోంది...',
+    'ta-IN': 'இடம் கண்டறியப்படுகிறது...',
+  },
+  'common.detectLocation': {
+    'en-US': 'Detect my location',
+    'hi-IN': 'मेरा स्थान पता करें',
+    'kn-IN': 'ನನ್ನ ಸ್ಥಳವನ್ನು ಪತ್ತೆಮಾಡಿ',
+    'te-IN': 'నా స్థానాన్ని గుర్తించు',
+    'ta-IN': 'என் இடத்தை கண்டறி',
+  },
+  'common.recommended': {
+    'en-US': 'Recommended for You',
+    'hi-IN': 'आपके लिए अनुशंसित',
+    'kn-IN': 'ನಿಮಗಾಗಿ ಶಿಫಾರಸು ಮಾಡಲಾಗಿದೆ',
+    'te-IN': 'మీకోసం సిఫార్సు చేయబడింది',
+    'ta-IN': 'உங்களுக்கு பரிந்துரைக்கப்பட்டது',
+  },
+  'common.aiInsights': {
+    'en-US': 'AI Insights',
+    'hi-IN': 'AI अंतर्दृष्टि',
+    'kn-IN': 'AI ಒಳನೋಟಗಳು',
+    'te-IN': 'AI అంతర్దృష్టులు',
+    'ta-IN': 'AI நுண்ணறிவுகள்',
+  },
+  'common.allServices': {
+    'en-US': 'All Services',
+    'hi-IN': 'सभी सेवाएं',
+    'kn-IN': 'ಎಲ್ಲಾ ಸೇವೆಗಳು',
+    'te-IN': 'అన్ని సేవలు',
+    'ta-IN': 'அனைத்து சேவைகள்',
+  },
 };
 
 interface LanguageContextType {

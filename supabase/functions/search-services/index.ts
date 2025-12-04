@@ -22,7 +22,86 @@ serve(async (req) => {
   }
 
   try {
-    const { query, language, action, vendors } = await req.json();
+    const { query, language, action, vendors, userLocation } = await req.json();
+
+    // Handle AI-based location recommendations
+    if (action === 'get-recommendations' && vendors && Array.isArray(vendors)) {
+      const targetLang = languageNames[language] || 'English';
+      
+      console.log('Generating AI recommendations for location:', userLocation);
+
+      const vendorSummary = vendors.map((v: any) => ({
+        id: v.id,
+        name: v.business_name,
+        type: v.service_type,
+        address: v.business_address,
+        cost: v.service_cost,
+      }));
+
+      const locationContext = userLocation 
+        ? `User is located at coordinates (${userLocation.latitude}, ${userLocation.longitude}). ` 
+        : '';
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a local services recommendation assistant for India. ${locationContext}
+Analyze the available vendors and provide personalized recommendations based on:
+1. Service relevance and quality indicators
+2. Geographic proximity (if location available)
+3. Price value proposition
+4. Service variety for the area
+
+Return a JSON object with:
+- "featured": array of 3 vendor IDs that are most recommended (prioritize variety)
+- "categories": object mapping service categories to arrays of vendor IDs
+- "insights": a brief ${targetLang} language insight about local services (2-3 sentences)
+- "nearbyTip": a helpful ${targetLang} tip about finding services in the area
+
+Return ONLY valid JSON, no markdown.`
+            },
+            {
+              role: 'user',
+              content: `Available vendors: ${JSON.stringify(vendorSummary)}`
+            }
+          ],
+          max_tokens: 800,
+          temperature: 0.7,
+        }),
+      });
+
+      const data = await response.json();
+      const recommendationText = data.choices?.[0]?.message?.content?.trim() || '{}';
+      
+      try {
+        const cleanedText = recommendationText.replace(/```json\n?|\n?```/g, '').trim();
+        const recommendations = JSON.parse(cleanedText);
+        
+        return new Response(JSON.stringify({ recommendations }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (parseError) {
+        console.error('Failed to parse recommendations:', parseError);
+        return new Response(JSON.stringify({ 
+          recommendations: {
+            featured: vendors.slice(0, 3).map((v: any) => v.id),
+            categories: {},
+            insights: 'Discover trusted local services in your neighborhood.',
+            nearbyTip: 'Browse our categories to find what you need.',
+          }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
     // Handle vendor data translation
     if (action === 'translate-vendors' && vendors && Array.isArray(vendors)) {
