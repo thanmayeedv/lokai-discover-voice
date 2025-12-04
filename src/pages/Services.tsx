@@ -29,18 +29,28 @@ interface VendorProfile {
 const Services = () => {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [vendors, setVendors] = useState<VendorProfile[]>([]);
+  const [translatedVendors, setTranslatedVendors] = useState<VendorProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [translating, setTranslating] = useState(false);
   const [filteredVendors, setFilteredVendors] = useState<VendorProfile[]>([]);
 
   useEffect(() => {
     fetchVendors();
   }, []);
 
+  // Translate vendors when language changes
   useEffect(() => {
+    if (vendors.length > 0) {
+      translateVendors(vendors);
+    }
+  }, [language, vendors]);
+
+  useEffect(() => {
+    const vendorsToFilter = translatedVendors.length > 0 ? translatedVendors : vendors;
     if (searchQuery) {
-      const filtered = vendors.filter(vendor => {
+      const filtered = vendorsToFilter.filter(vendor => {
         const searchLower = searchQuery.toLowerCase();
         return (
           vendor.business_name?.toLowerCase().includes(searchLower) ||
@@ -50,9 +60,9 @@ const Services = () => {
       });
       setFilteredVendors(filtered);
     } else {
-      setFilteredVendors(vendors);
+      setFilteredVendors(vendorsToFilter);
     }
-  }, [searchQuery, vendors]);
+  }, [searchQuery, translatedVendors, vendors]);
 
   const fetchVendors = async () => {
     try {
@@ -65,12 +75,38 @@ const Services = () => {
       if (error) throw error;
 
       setVendors(data || []);
-      setFilteredVendors(data || []);
     } catch (error: any) {
       console.error('Error fetching vendors:', error);
       toast.error('Failed to load vendors');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const translateVendors = async (vendorList: VendorProfile[]) => {
+    if (language === 'en-US' || vendorList.length === 0) {
+      setTranslatedVendors(vendorList);
+      return;
+    }
+
+    try {
+      setTranslating(true);
+      const response = await supabase.functions.invoke('search-services', {
+        body: {
+          action: 'translate-vendors',
+          language,
+          vendors: vendorList,
+        },
+      });
+
+      if (response.error) throw response.error;
+      
+      setTranslatedVendors(response.data?.translatedVendors || vendorList);
+    } catch (error) {
+      console.error('Translation error:', error);
+      setTranslatedVendors(vendorList);
+    } finally {
+      setTranslating(false);
     }
   };
 
@@ -152,10 +188,12 @@ const Services = () => {
         </div>
 
         {/* Loading State */}
-        {loading && (
+        {(loading || translating) && (
           <div className="flex justify-center items-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="ml-2 text-muted-foreground">{t('services.loading')}</span>
+            <span className="ml-2 text-muted-foreground">
+              {translating ? t('voice.searching') : t('services.loading')}
+            </span>
           </div>
         )}
 
