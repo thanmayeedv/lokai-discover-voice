@@ -1,11 +1,13 @@
 import { MapPin, Star, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useNavigate } from 'react-router-dom';
 import VoiceSearch from './VoiceSearch';
 import heroBg from '@/assets/hero-bg.jpg';
 
 const Hero = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-[80vh] flex items-center">
@@ -57,7 +59,7 @@ const Hero = () => {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="btn-hero">
+              <Button size="lg" className="btn-hero" onClick={() => navigate('/auth')}>
                 {t('hero.getStarted')}
               </Button>
               <Button 
