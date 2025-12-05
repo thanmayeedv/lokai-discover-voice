@@ -59,7 +59,7 @@ const Hero = () => {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="btn-hero" onClick={() => navigate('/auth')}>
+              <Button size="lg" className="btn-hero" onClick={() => navigate('/auth?tab=signup')}>
                 {t('hero.getStarted')}
               </Button>
               <Button 
