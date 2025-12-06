@@ -312,43 +312,89 @@ const Services = () => {
           </p>
         </div>
 
-        {/* Location Status Bar */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
-          {latitude && longitude ? (
-            <Badge variant="outline" className="flex items-center gap-2 px-4 py-2">
-              <Navigation className="w-4 h-4 text-green-500" />
-              <span className="text-sm">Location detected</span>
-            </Badge>
-          ) : locationLoading ? (
-            <Badge variant="outline" className="flex items-center gap-2 px-4 py-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm">Detecting location...</span>
-            </Badge>
-          ) : (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={requestLocation}
-              className="flex items-center gap-2"
-            >
-              <Navigation className="w-4 h-4" />
-              {permissionDenied ? 'Enable location for better results' : 'Detect my location'}
-            </Button>
-          )}
-          
-          {recommendations && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={fetchRecommendations}
-              disabled={loadingRecommendations}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${loadingRecommendations ? 'animate-spin' : ''}`} />
-              Refresh recommendations
-            </Button>
-          )}
-        </div>
+        {/* Location Status Card */}
+        <Card className={`mb-8 border-2 transition-all duration-500 ${
+          latitude && longitude 
+            ? 'border-green-500/50 bg-green-500/5' 
+            : locationLoading 
+              ? 'border-primary/30 bg-primary/5' 
+              : 'border-orange-500/30 bg-orange-500/5'
+        }`}>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {latitude && longitude ? (
+                  <>
+                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <Navigation className="w-5 h-5 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-green-600 dark:text-green-400">📍 Location Detected</p>
+                      <p className="text-xs text-muted-foreground">
+                        Finding nearby services for you...
+                      </p>
+                    </div>
+                  </>
+                ) : locationLoading ? (
+                  <>
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-primary">Detecting your location...</p>
+                      <p className="text-xs text-muted-foreground">
+                        Please allow location access for better recommendations
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-orange-600 dark:text-orange-400">
+                        {permissionDenied ? 'Location access denied' : 'Location not detected'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {permissionDenied 
+                          ? 'Enable location in browser settings for personalized results' 
+                          : 'Enable location to find nearby services'
+                        }
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {!latitude && !longitude && !locationLoading && (
+                  <Button 
+                    onClick={requestLocation}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Navigation className="w-4 h-4" />
+                    Detect Location
+                  </Button>
+                )}
+                
+                {latitude && longitude && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={fetchRecommendations}
+                    disabled={loadingRecommendations}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingRecommendations ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* AI Insights */}
         {recommendations && !searchQuery && (
