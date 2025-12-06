@@ -9,7 +9,9 @@ import {
   Navigation,
   Sparkles,
   Star,
-  RefreshCw
+  RefreshCw,
+  MessageCircle,
+  Share2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -164,6 +166,39 @@ const Services = () => {
       .filter(Boolean) as VendorProfile[];
   };
 
+  const handleCall = (phone: string) => {
+    window.location.href = `tel:${phone}`;
+    toast.success('Connecting your call...');
+  };
+
+  const handleWhatsApp = (phone: string, businessName: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent(`Hi, I found your service "${businessName}" on LokAI and would like to inquire about your services.`);
+    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+  };
+
+  const handleShare = async (vendor: VendorProfile) => {
+    const shareData = {
+      title: vendor.business_name || 'Service',
+      text: `Check out ${vendor.business_name} - ${vendor.service_type} on LokAI!`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast.success('Shared successfully!');
+      } else {
+        await navigator.clipboard.writeText(`${shareData.text}\nContact: ${vendor.contact_number || 'N/A'}\n${shareData.url}`);
+        toast.success('Contact details copied to clipboard!');
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        toast.error('Failed to share');
+      }
+    }
+  };
+
   const VendorCard = ({ vendor, isFeatured = false }: { vendor: VendorProfile; isFeatured?: boolean }) => {
     return (
       <Card className={`service-card cursor-pointer group hover:border-accent hover:shadow-lg transition-all duration-300 ${isFeatured ? 'ring-2 ring-primary/30 bg-primary/5' : ''}`}>
@@ -212,17 +247,44 @@ const Services = () => {
                 )}
               </div>
               
-              <div className="flex gap-2">
+              {/* Contact Actions */}
+              <div className="flex gap-2 mb-2">
                 {vendor.contact_number && (
-                  <Button size="sm" className="flex-1 h-8 text-xs">
-                    <Phone className="w-3 h-3 mr-1" />
-                    Contact
-                  </Button>
+                  <>
+                    <Button 
+                      size="sm" 
+                      className="flex-1 h-9"
+                      onClick={() => handleCall(vendor.contact_number!)}
+                    >
+                      <Phone className="w-4 h-4 mr-1" />
+                      Call
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      className="h-9 bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => handleWhatsApp(vendor.contact_number!, vendor.business_name || 'Service')}
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </Button>
+                  </>
                 )}
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                  View Details
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="h-9"
+                  onClick={() => handleShare(vendor)}
+                >
+                  <Share2 className="w-4 h-4" />
                 </Button>
               </div>
+
+              {/* Show contact number */}
+              {vendor.contact_number && (
+                <p className="text-xs text-muted-foreground text-center">
+                  {vendor.contact_number}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
