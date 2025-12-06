@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { 
   MapPin,
   Phone,
@@ -11,7 +11,9 @@ import {
   Star,
   RefreshCw,
   MessageCircle,
-  Share2
+  Share2,
+  ShoppingCart,
+  ShoppingBag
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useCart, isProductService } from '@/hooks/useCart';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -42,9 +45,11 @@ interface AIRecommendations {
 
 const Services = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const searchQuery = searchParams.get('search') || '';
   const { t, language } = useLanguage();
   const { latitude, longitude, loading: locationLoading, error: locationError, requestLocation, permissionDenied } = useGeolocation();
+  const { addToCart, isInCart } = useCart();
   
   const [vendors, setVendors] = useState<VendorProfile[]>([]);
   const [translatedVendors, setTranslatedVendors] = useState<VendorProfile[]>([]);
@@ -199,7 +204,15 @@ const Services = () => {
     }
   };
 
+  const handleBuyNow = async (vendorId: string) => {
+    await addToCart(vendorId);
+    navigate('/cart');
+  };
+
   const VendorCard = ({ vendor, isFeatured = false }: { vendor: VendorProfile; isFeatured?: boolean }) => {
+    const isProduct = isProductService(vendor.service_type);
+    const inCart = isInCart(vendor.id);
+
     return (
       <Card className={`service-card cursor-pointer group hover:border-accent hover:shadow-lg transition-all duration-300 ${isFeatured ? 'ring-2 ring-primary/30 bg-primary/5' : ''}`}>
         <CardContent className="p-4">
@@ -247,12 +260,37 @@ const Services = () => {
                 )}
               </div>
               
+              {/* Product Actions - Buy Now / Add to Cart (only for products) */}
+              {isProduct && (
+                <div className="flex gap-2 mb-3">
+                  <Button 
+                    size="sm" 
+                    className="flex-1 h-9"
+                    onClick={() => handleBuyNow(vendor.id)}
+                  >
+                    <ShoppingBag className="w-4 h-4 mr-1" />
+                    {t('services.buyNow')}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant={inCart ? "secondary" : "outline"}
+                    className="h-9"
+                    onClick={() => addToCart(vendor.id)}
+                    disabled={inCart}
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    {inCart ? '✓' : ''}
+                  </Button>
+                </div>
+              )}
+
               {/* Contact Actions */}
               <div className="flex gap-2 mb-2">
                 {vendor.contact_number && (
                   <>
                     <Button 
                       size="sm" 
+                      variant={isProduct ? "outline" : "default"}
                       className="flex-1 h-9"
                       onClick={() => handleCall(vendor.contact_number!)}
                     >
