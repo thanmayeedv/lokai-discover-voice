@@ -43,6 +43,10 @@ interface AIRecommendations {
   nearbyTip: string;
 }
 
+interface VendorDistances {
+  [vendorId: string]: number | null;
+}
+
 const Services = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -57,6 +61,7 @@ const Services = () => {
   const [translating, setTranslating] = useState(false);
   const [filteredVendors, setFilteredVendors] = useState<VendorProfile[]>([]);
   const [recommendations, setRecommendations] = useState<AIRecommendations | null>(null);
+  const [vendorDistances, setVendorDistances] = useState<VendorDistances>({});
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   useEffect(() => {
@@ -130,6 +135,9 @@ const Services = () => {
 
       if (response.error) throw response.error;
       setRecommendations(response.data?.recommendations || null);
+      if (response.data?.vendorDistances) {
+        setVendorDistances(response.data.vendorDistances);
+      }
     } catch (error) {
       console.error('Recommendations error:', error);
     } finally {
@@ -209,9 +217,16 @@ const Services = () => {
     navigate('/cart');
   };
 
+  const formatDistance = (distance: number | null): string => {
+    if (distance === null) return '';
+    if (distance < 1) return `${Math.round(distance * 1000)}m away`;
+    return `${distance.toFixed(1)}km away`;
+  };
+
   const VendorCard = ({ vendor, isFeatured = false }: { vendor: VendorProfile; isFeatured?: boolean }) => {
     const isProduct = isProductService(vendor.service_type);
     const inCart = isInCart(vendor.id);
+    const distance = vendorDistances[vendor.id];
 
     return (
       <Card className={`service-card cursor-pointer group hover:border-accent hover:shadow-lg transition-all duration-300 ${isFeatured ? 'ring-2 ring-primary/30 bg-primary/5' : ''}`}>
@@ -246,9 +261,18 @@ const Services = () => {
               </div>
               
               {vendor.business_address && (
-                <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
+                <div className="flex items-start gap-1 text-xs text-muted-foreground mb-1">
                   <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
                   <p className="line-clamp-2">{vendor.business_address}</p>
+                </div>
+              )}
+              
+              {distance !== null && distance !== undefined && (
+                <div className="flex items-center gap-1 text-xs mb-2">
+                  <Navigation className="w-3 h-3 text-green-500" />
+                  <span className="text-green-600 dark:text-green-400 font-medium">
+                    {formatDistance(distance)}
+                  </span>
                 </div>
               )}
               
