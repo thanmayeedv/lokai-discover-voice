@@ -30,17 +30,66 @@ serve(async (req) => {
       
       console.log('Generating AI recommendations for location:', userLocation);
 
-      const vendorSummary = vendors.map((v: any) => ({
-        id: v.id,
-        name: v.business_name,
-        type: v.service_type,
-        address: v.business_address,
-        cost: v.service_cost,
-      }));
+      // Calculate distance for each vendor if user location is available
+      const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+        const R = 6371; // Radius of the Earth in kilometers
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      };
+
+      // Parse vendor coordinates and calculate distances
+      const vendorsWithDistance = vendors.map((v: any) => {
+        let distance: number | null = null;
+        if (userLocation && v.location_coordinates) {
+          try {
+            // location_coordinates is stored as PostgreSQL point type: "(lat,lng)"
+            const coordStr = String(v.location_coordinates);
+            const match = coordStr.match(/\(([^,]+),([^)]+)\)/);
+            if (match) {
+              const vendorLat = parseFloat(match[1]);
+              const vendorLng = parseFloat(match[2]);
+              if (!isNaN(vendorLat) && !isNaN(vendorLng)) {
+                distance = calculateDistance(
+                  userLocation.latitude,
+                  userLocation.longitude,
+                  vendorLat,
+                  vendorLng
+                );
+              }
+            }
+          } catch (e) {
+            console.log('Error parsing coordinates for vendor:', v.id);
+          }
+        }
+        return {
+          id: v.id,
+          name: v.business_name,
+          type: v.service_type,
+          address: v.business_address,
+          cost: v.service_cost,
+          distance: distance ? Math.round(distance * 10) / 10 : null,
+        };
+      });
+
+      // Sort by distance if available
+      const sortedByDistance = [...vendorsWithDistance].sort((a, b) => {
+        if (a.distance === null && b.distance === null) return 0;
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
 
       const locationContext = userLocation 
-        ? `User is located at coordinates (${userLocation.latitude}, ${userLocation.longitude}). ` 
-        : '';
+        ? `User is located at coordinates (${userLocation.latitude}, ${userLocation.longitude}). Prioritize vendors with shorter distances.` 
+        : 'User location not available.';
+
+      const nearbyVendors = sortedByDistance.filter(v => v.distance !== null && v.distance < 10);
+      const hasNearby = nearbyVendors.length > 0;
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -55,22 +104,24 @@ serve(async (req) => {
               role: 'system',
               content: `You are a local services recommendation assistant for India. ${locationContext}
 Analyze the available vendors and provide personalized recommendations based on:
-1. Service relevance and quality indicators
-2. Geographic proximity (if location available)
+1. Geographic proximity (HIGHEST priority - prefer vendors within 5km)
+2. Service relevance and variety
 3. Price value proposition
-4. Service variety for the area
+4. Service type diversity
+
+${hasNearby ? `There are ${nearbyVendors.length} vendors within 10km of the user.` : 'No vendors have distance data - recommend based on variety.'}
 
 Return a JSON object with:
-- "featured": array of 3 vendor IDs that are most recommended (prioritize variety)
+- "featured": array of 3-5 vendor IDs that are most recommended (prioritize NEAREST vendors first, then variety)
 - "categories": object mapping service categories to arrays of vendor IDs
-- "insights": a brief ${targetLang} language insight about local services (2-3 sentences)
-- "nearbyTip": a helpful ${targetLang} tip about finding services in the area
+- "insights": a brief ${targetLang} language insight about local services available nearby (2-3 sentences, mention distance if available)
+- "nearbyTip": a helpful ${targetLang} tip about the nearest services
 
 Return ONLY valid JSON, no markdown.`
             },
             {
               role: 'user',
-              content: `Available vendors: ${JSON.stringify(vendorSummary)}`
+              content: `Available vendors with distances: ${JSON.stringify(sortedByDistance)}`
             }
           ],
           max_tokens: 800,
@@ -85,18 +136,34 @@ Return ONLY valid JSON, no markdown.`
         const cleanedText = recommendationText.replace(/```json\n?|\n?```/g, '').trim();
         const recommendations = JSON.parse(cleanedText);
         
-        return new Response(JSON.stringify({ recommendations }), {
+        // Include distance data in response
+        return new Response(JSON.stringify({ 
+          recommendations,
+          vendorDistances: vendorsWithDistance.reduce((acc: any, v: any) => {
+            acc[v.id] = v.distance;
+            return acc;
+          }, {}),
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (parseError) {
         console.error('Failed to parse recommendations:', parseError);
+        // Fallback: use nearest vendors as featured
+        const featuredIds = sortedByDistance.slice(0, 3).map((v: any) => v.id);
+        
         return new Response(JSON.stringify({ 
           recommendations: {
-            featured: vendors.slice(0, 3).map((v: any) => v.id),
+            featured: featuredIds,
             categories: {},
-            insights: 'Discover trusted local services in your neighborhood.',
-            nearbyTip: 'Browse our categories to find what you need.',
-          }
+            insights: userLocation 
+              ? 'Showing services based on your location. Closer vendors are prioritized.'
+              : 'Discover trusted local services in your neighborhood.',
+            nearbyTip: 'Enable location for personalized nearby recommendations.',
+          },
+          vendorDistances: vendorsWithDistance.reduce((acc: any, v: any) => {
+            acc[v.id] = v.distance;
+            return acc;
+          }, {}),
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
